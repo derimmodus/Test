@@ -269,6 +269,19 @@ def update_ticket(ticket_id):
 
     return jsonify({"error": "Ticket nicht gefunden"}), 404
 
+@app.route('/api/tickets/<int:ticket_id>', methods=['DELETE'])
+def delete_ticket(ticket_id):
+    """Ticket löschen"""
+    tickets = load_json('tickets')
+    
+    for i, ticket in enumerate(tickets):
+        if ticket.get('id') == ticket_id:
+            deleted_ticket = tickets.pop(i)
+            save_json('tickets', tickets)
+            return jsonify({"success": True, "deleted_ticket": deleted_ticket})
+    
+    return jsonify({"error": "Ticket nicht gefunden"}), 404
+
 # =============================================================================
 # CONTACTS API (Ersetzt komplexes Telefonbuch)
 # =============================================================================
@@ -668,28 +681,7 @@ def api_add_tool_to_workset(workset_id):
         print(f"Fehler in api_add_tool_to_workset: {e}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/worksets/<int:workset_id>/tools/<int:tool_id>', methods=['DELETE'])
-def api_remove_tool_from_workset(workset_id, tool_id):
-    """Tool aus einem Workset entfernen"""
-    try:
-        working_sets = load_json('working_sets')
-        
-        # Finde das Working Set
-        working_set = next((ws for ws in working_sets if ws.get('workspace_id') == workset_id), None)
-        if not working_set:
-            return jsonify({"error": "Workset nicht gefunden"}), 404
-        
-        # Entferne Tool aus der Liste
-        if tool_id in working_set['tools']:
-            working_set['tools'].remove(tool_id)
-            save_json('working_sets', working_sets)
-            return jsonify({"success": True, "message": "Tool erfolgreich entfernt"})
-        else:
-            return jsonify({"error": "Tool nicht im Workset gefunden"}), 404
-        
-    except Exception as e:
-        print(f"Fehler in api_remove_tool_from_workset: {e}")
-        return jsonify({"error": str(e)}), 500
+# Doppelter DELETE Endpoint entfernt - wird vom ersten remove_tool_from_workset behandelt
 
 # MAIN APPLICATION
 # =============================================================================

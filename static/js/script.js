@@ -450,9 +450,9 @@
           `;
         }
         
-        // Zeige das neueste/aktuellste Ticket als Standard
-        const sortedTickets = [...this.data].sort((a, b) => (b.id || 0) - (a.id || 0));
-        const currentTicket = sortedTickets[0]; // Nehme das neueste Ticket
+        // Zeige Ticket #1 immer oben (niedrigste ID zuerst)
+        const sortedTickets = [...this.data].sort((a, b) => (a.id || 0) - (b.id || 0));
+        const currentTicket = sortedTickets[0]; // Nehme das erste Ticket (niedrigste ID)
         
         return this.renderTicketMainView(currentTicket, sortedTickets);
       },
@@ -464,7 +464,10 @@
         // Erstelle Ticket-Navigation
         const ticketNavigation = allTickets.map(t => `
           <div class="ticket-nav-item ${t.id === ticket.id ? 'active' : ''}" onclick="app.switchToTicket(${t.id})">
-            <span class="nav-ticket-id">#${t.id}</span>
+            <div class="nav-ticket-content">
+              <span class="nav-delete-btn" onclick="event.stopPropagation(); app.deleteTicket(${t.id})" title="Ticket löschen">×</span>
+              <span class="nav-ticket-id">#${t.id}</span>
+            </div>
             <span class="nav-ticket-status status-${(t.status || 'offen').toLowerCase().replace(' ', '-')}"></span>
           </div>
         `).join('');
@@ -494,8 +497,8 @@
                   </span>
                 </div>
                 <div class="ticket-view-actions">
-                  <button onclick="app.showTicketEdit(${ticket.id})" class="btn-edit">
-                    <i class="fas fa-edit"></i> Bearbeiten
+                  <button onclick="app.deleteTicket(${ticket.id})" class="btn-delete" title="Ticket löschen">
+                    <i class="fas fa-times"></i>
                   </button>
                 </div>
                 <div class="ticket-timestamp">
@@ -506,19 +509,19 @@
               <div class="ticket-content-layout">
                 <div class="ticket-info-section">
                   <div class="info-card-main">
-                    <h3><i class="fas fa-info-circle"></i> Ticket-Informationen</h3>
+                    <h3><i class="fas fa-info-circle"></i> <span class="editable-field ticket-title" data-field="title" data-ticket-id="${ticket.id}" ondblclick="app.startInlineEdit(this)">${ticket.title || ticket.headerText || 'Ticket-Informationen'}</span></h3>
                     <div class="info-grid-main">
                       <div class="info-field">
-                        <label>Betreff:</label>
-                        <span>${ticket.headerText || ticket.title || 'Kein Betreff'}</span>
-                      </div>
-                      <div class="info-field">
                         <label>Telefon:</label>
-                        <span>${ticket.phone || 'Nicht angegeben'}</span>
+                        <span class="editable-field phone-field" data-field="phone" data-ticket-id="${ticket.id}" ondblclick="app.startInlineEdit(this)">${ticket.phone || 'Nicht angegeben'}</span>
                       </div>
                       <div class="info-field">
                         <label>PKZ:</label>
-                        <span>${ticket.pkz || 'Nicht angegeben'}</span>
+                        <span class="editable-field" data-field="pkz" data-ticket-id="${ticket.id}" ondblclick="app.startInlineEdit(this)">${ticket.pkz || 'Nicht angegeben'}</span>
+                      </div>
+                      <div class="info-field">
+                        <label>Betreff:</label>
+                        <span class="editable-field" data-field="headerText" data-ticket-id="${ticket.id}" ondblclick="app.startInlineEdit(this)">${ticket.headerText || ticket.title || 'Kein Betreff'}</span>
                       </div>
                       <div class="info-field">
                         <label>Erstellt:</label>
@@ -535,7 +538,7 @@
                   
                   <div class="description-card-main">
                     <h3><i class="fas fa-file-alt"></i> Beschreibung</h3>
-                    <div class="description-content-main">
+                    <div class="description-content-main editable-field" data-field="description" data-ticket-id="${ticket.id}" ondblclick="app.startInlineEdit(this)">
                       ${ticket.description || 'Keine Beschreibung vorhanden.'}
                     </div>
                   </div>
@@ -1089,6 +1092,9 @@
           
           if (response.ok) {
             helpers.notify('Tool erfolgreich zum Workset hinzugefügt!', 'success');
+            // Cache löschen damit neue Daten geladen werden
+            helpers.clearCache('worksets_with_tools');
+            helpers.clearCache('tools');
             // Aktualisiere immer das Tools-Modul (dort werden die Worksets angezeigt)
             await loadModule('tools');
           } else {
@@ -1241,8 +1247,11 @@
         
         if (response.ok) {
           console.log('Tool successfully removed from workset');
-          // Workspaces neu laden
-          await loadModule('workspaces');
+          // Cache löschen damit neue Daten geladen werden
+          helpers.clearCache('worksets_with_tools');
+          helpers.clearCache('tools');
+          // Tools Modul neu laden um Worksets zu aktualisieren
+          await loadModule('tools');
         } else {
           console.error('Failed to remove tool from workset:', response.status);
           const errorData = await response.json();
@@ -1267,10 +1276,53 @@
       }
     },
     
-    showTicketCreate: function() {
-      // Schließe eventuell offenes Modal
-      app.closeTicketModal();
+    showTicketCreate: async function() {
+      // Erstelle sofort ein neues Ticket mit der nächsten ID
+      const tickets = MODULES.tickets.data;
+      const nextId = Math.max(...tickets.map(t => t.id || 0), 0) + 1;
       
+      const newTicket = {
+        phone: '',
+        pkz: '',
+        headerText: 'Neues Ticket',
+        description: '',
+        created_at: new Date().toISOString()
+      };
+      
+      try {
+        const response = await fetch('/api/tickets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newTicket)
+        });
+        
+        if (response.ok) {
+          const createdTicket = await response.json();
+          // Tickets neu laden und zum neuen Ticket wechseln
+          await MODULES.tickets.loadTickets();
+          await loadModule('tickets');
+          // Zum neuen Ticket wechseln
+          if (createdTicket.ticket && createdTicket.ticket.id) {
+            app.switchToTicket(createdTicket.ticket.id);
+            // Automatisch das erste Feld (Telefon) in Bearbeitungsmodus setzen
+            setTimeout(() => {
+              const phoneField = document.querySelector('.phone-field');
+              if (phoneField) {
+                app.startInlineEdit(phoneField);
+              }
+            }, 200);
+          }
+          helpers.notify(`Neues Ticket #${createdTicket.ticket?.id || nextId} erstellt!`, 'success');
+        } else {
+          helpers.notify('Fehler beim Erstellen des Tickets', 'error');
+        }
+      } catch (error) {
+        console.error('Error creating ticket:', error);
+        helpers.notify('Fehler beim Erstellen des Tickets', 'error');
+      }
+      return;
+      
+      // Alter Modal-Code (nicht mehr verwendet)
       const modalHtml = `
         <div class="ticket-modal-overlay">
           <div class="ticket-modal create-modal">
@@ -2102,6 +2154,130 @@
 
     showContactEdit: function(contactId) {
       helpers.notify('Kontakt bearbeiten - in Entwicklung', 'info');
+    },
+
+    // Neue Ticket-Funktionen
+    async deleteTicket(ticketId) {
+      if (!confirm(`Möchten Sie Ticket #${ticketId} wirklich löschen?`)) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/tickets/${ticketId}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          helpers.notify(`Ticket #${ticketId} wurde gelöscht`, 'success');
+          // Tickets neu laden
+          await MODULES.tickets.loadTickets();
+          await loadModule('tickets');
+        } else {
+          helpers.notify('Fehler beim Löschen des Tickets', 'error');
+        }
+      } catch (error) {
+        console.error('Error deleting ticket:', error);
+        helpers.notify('Fehler beim Löschen des Tickets', 'error');
+      }
+    },
+
+    switchToTicket(ticketId) {
+      const ticket = MODULES.tickets.data.find(t => t.id === ticketId);
+      if (ticket) {
+        // Aktualisiere die aktuelle Ticket-Anzeige
+        const sortedTickets = [...MODULES.tickets.data].sort((a, b) => (a.id || 0) - (b.id || 0));
+        const ticketHtml = MODULES.tickets.renderTicketMainView(ticket, sortedTickets);
+        const contentElement = document.getElementById('content');
+        if (contentElement) {
+          contentElement.innerHTML = ticketHtml;
+        }
+      }
+    },
+
+    startInlineEdit(element) {
+      const field = element.dataset.field;
+      const ticketId = parseInt(element.dataset.ticketId);
+      const currentValue = element.textContent.trim();
+      
+      // Verhindere mehrfache Bearbeitung
+      if (element.querySelector('input') || element.querySelector('textarea')) {
+        return;
+      }
+      
+      let inputElement;
+      if (field === 'description') {
+        inputElement = document.createElement('textarea');
+        inputElement.rows = 4;
+        inputElement.style.width = '100%';
+        inputElement.style.minHeight = '80px';
+      } else {
+        inputElement = document.createElement('input');
+        inputElement.type = 'text';
+        inputElement.style.width = '100%';
+      }
+      
+      inputElement.value = currentValue === 'Nicht angegeben' || currentValue === 'Keine Beschreibung vorhanden.' || currentValue === 'Kein Betreff' ? '' : currentValue;
+      inputElement.style.border = '2px solid #007bff';
+      inputElement.style.padding = '4px';
+      inputElement.style.borderRadius = '4px';
+      
+      // Ersetze den Inhalt temporär
+      const originalContent = element.innerHTML;
+      element.innerHTML = '';
+      element.appendChild(inputElement);
+      
+      inputElement.focus();
+      if (field !== 'description') {
+        inputElement.select();
+      }
+      
+      const saveEdit = async () => {
+        const newValue = inputElement.value.trim();
+        
+        try {
+          const updateData = {};
+          updateData[field] = newValue || '';
+          
+          const response = await fetch(`/api/tickets/${ticketId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updateData)
+          });
+          
+          if (response.ok) {
+            // Aktualisiere die Anzeige
+            element.innerHTML = newValue || (field === 'description' ? 'Keine Beschreibung vorhanden.' : 'Nicht angegeben');
+            helpers.notify('Änderung gespeichert', 'success');
+            
+            // Aktualisiere die Daten im Modul
+            const ticket = MODULES.tickets.data.find(t => t.id === ticketId);
+            if (ticket) {
+              ticket[field] = newValue;
+            }
+          } else {
+            throw new Error('Server error');
+          }
+        } catch (error) {
+          console.error('Error saving edit:', error);
+          helpers.notify('Fehler beim Speichern', 'error');
+          element.innerHTML = originalContent;
+        }
+      };
+      
+      const cancelEdit = () => {
+        element.innerHTML = originalContent;
+      };
+      
+      inputElement.addEventListener('blur', saveEdit);
+      inputElement.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && (field !== 'description' || e.ctrlKey)) {
+          e.preventDefault();
+          saveEdit();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          cancelEdit();
+        }
+      });
     }
   };
 

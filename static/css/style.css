@@ -3249,3 +3249,90 @@ textarea {
         grid-template-columns: 1fr;
     }
 }
+
+/* Ticket-System Erweiterungen */
+.editable-field {
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    position: relative;
+}
+
+.editable-field:hover {
+    background-color: #f8f9fa;
+    border: 1px dashed #007bff;
+}
+
+.editable-field:hover::after {
+    content: " (Doppelklick zum Bearbeiten)";
+    font-size: 0.8em;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.btn-delete {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 14px;
+}
+
+.btn-delete:hover {
+    background-color: #c82333;
+}
+
+.btn-delete i {
+    font-size: 16px;
+}
+
+/* Bessere Ticket-Navigation */
+.ticket-nav-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    transition: background-color 0.2s;
+}
+
+.ticket-nav-item:hover {
+    background-color: #f8f9fa;
+}
+
+.ticket-nav-item.active {
+    background-color: #007bff;
+    color: white;
+}
+
+.nav-ticket-id {
+    font-weight: bold;
+}
+
+.nav-ticket-status {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #28a745;
+}
+
+/* Inline-Editing Styles */
+.editable-field input,
+.editable-field textarea {
+    font-family: inherit;
+    font-size: inherit;
+    background: white;
+    outline: none;
+    resize: vertical;
+}
+
+.editable-field textarea {
+    font-family: inherit;
+    line-height: 1.4;
+}

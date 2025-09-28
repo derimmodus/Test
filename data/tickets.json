@@ -1,15 +1,14 @@
 [
   {
-    "id": 1,
-    "title": "Drucker wird nicht erkannt",
-    "status": "Offen",
-    "created_at": "2025-05-01T08:35:00Z"
-  },
-  {
     "id": 2,
     "title": "VPN-Verbindung bricht ab",
     "status": "In Bearbeitung",
-    "created_at": "2025-05-02T10:15:00Z"
+    "created_at": "2025-05-02T10:15:00Z",
+    "pkz": "",
+    "updated": "2025-09-28T20:03:11.000Z",
+    "phone": "",
+    "headerText": "VPN-Verbindung bricht ab",
+    "description": "Test"
   },
   {
     "phone": "12",
@@ -95,5 +94,45 @@
     "id": 12,
     "created": "2025-09-28T12:41:45.000Z",
     "updated": "2025-09-28T13:36:20.000Z"
+  },
+  {
+    "phone": "",
+    "pkz": "",
+    "headerText": "Neues Ticket",
+    "description": "",
+    "created_at": "2025-09-28T19:59:49.115Z",
+    "id": 13,
+    "created": "2025-09-28T19:59:49.000Z",
+    "status": "open"
+  },
+  {
+    "phone": "",
+    "pkz": "",
+    "headerText": "Neues Ticket",
+    "description": "",
+    "created_at": "2025-09-28T19:59:50.573Z",
+    "id": 14,
+    "created": "2025-09-28T19:59:50.000Z",
+    "status": "open"
+  },
+  {
+    "phone": "",
+    "pkz": "",
+    "headerText": "Neues Ticket",
+    "description": "",
+    "created_at": "2025-09-28T20:05:26.075Z",
+    "id": 15,
+    "created": "2025-09-28T20:05:26.000Z",
+    "status": "open"
+  },
+  {
+    "phone": "",
+    "pkz": "",
+    "headerText": "Neues Ticket",
+    "description": "",
+    "created_at": "2025-09-28T20:05:27.450Z",
+    "id": 16,
+    "created": "2025-09-28T20:05:27.000Z",
+    "status": "open"
   }
 ]

@@ -4,10 +4,7 @@
     "name": "Test Workset",
     "description": "Ein Test-Workset zum Testen der Drag & Drop-Funktionalität",
     "autostart": false,
-    "tools": [
-      3,
-      6
-    ],
+    "tools": [],
     "created_at": "2025-09-28T18:11:00.000Z"
   }
 ]
