@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "firstName": "Max",
+    "lastName": "Mustermann",
+    "department": "IT-Abteilung",
+    "position": "System Administrator",
+    "phone": "+49 123 456789",
+    "extension": "123",
+    "email": "max.mustermann@firma.de"
+  },
+  {
+    "id": 2,
+    "firstName": "Anna",
+    "lastName": "Schmidt",
+    "department": "Personal",
+    "position": "HR Manager",
+    "phone": "+49 123 456790",
+    "extension": "124",
+    "email": "anna.schmidt@firma.de"
+  },
+  {
+    "id": 3,
+    "firstName": "Peter",
+    "lastName": "Weber",
+    "department": "Vertrieb",
+    "position": "Sales Manager",
+    "phone": "+49 123 456791",
+    "extension": "125",
+    "email": "peter.weber@firma.de"
+  },
+  {
+    "id": 4,
+    "firstName": "Lisa",
+    "lastName": "Meyer",
+    "department": "Marketing",
+    "position": "Marketing Specialist",
+    "phone": "+49 123 456792",
+    "extension": "126",
+    "email": "lisa.meyer@firma.de"
+  },
+  {
+    "id": 5,
+    "firstName": "Thomas",
+    "lastName": "Bauer",
+    "department": "IT-Support",
+    "position": "Techniker",
+    "phone": "+49 123 456793",
+    "extension": "127",
+    "email": "thomas.bauer@firma.de"
+  },
+  {
+    "id": 6,
+    "firstName": "Sandra",
+    "lastName": "Koch",
+    "department": "Buchhaltung",
+    "position": "Buchhalter",
+    "phone": "+49 123 456794",
+    "extension": "128",
+    "email": "sandra.koch@firma.de"
+  }
+]

@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  helptool:
+    build: .
+    ports:
+      - "5411:5411"
+    volumes:
+      - ./data:/app/data:rw
+      - ./logs:/app/logs:rw
+      - ./static:/app/static:ro
+    environment:
+      - FLASK_ENV=production
+      - PYTHONPATH=/app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5411/api/system/info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - helptool-network
+
+networks:
+  helptool-network:
+    driver: bridge
+
+volumes:
+  helptool-data:
+  helptool-logs:
